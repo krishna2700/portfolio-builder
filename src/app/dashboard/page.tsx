@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import type { PortfolioContent } from "@/lib/content";
 import type { ThemeDefinition } from "@/lib/themes";
+import ExperienceEditor from "@/components/editors/ExperienceEditor";
+import ProjectsEditor from "@/components/editors/ProjectsEditor";
+import SkillTiersEditor from "@/components/editors/SkillTiersEditor";
 
 type ThemeRow = ThemeDefinition & { id: string };
 type Portfolio = {
@@ -143,6 +146,30 @@ export default function DashboardPage() {
               onChange={(v) => setPortfolio({ ...portfolio, content: { ...portfolio.content, about: { ...portfolio.content.about, location: v } } })}
             />
           </div>
+        </div>
+
+        <div className="card p-6 mb-6">
+          <h2 className="text-[15px] font-semibold mb-4">Experience ({portfolio.content.experience.length})</h2>
+          <ExperienceEditor
+            value={portfolio.content.experience}
+            onChange={(experience) => setPortfolio({ ...portfolio, content: { ...portfolio.content, experience } })}
+          />
+        </div>
+
+        <div className="card p-6 mb-6">
+          <h2 className="text-[15px] font-semibold mb-4">Projects ({portfolio.content.projects.length})</h2>
+          <ProjectsEditor
+            value={portfolio.content.projects}
+            onChange={(projects) => setPortfolio({ ...portfolio, content: { ...portfolio.content, projects } })}
+          />
+        </div>
+
+        <div className="card p-6 mb-6">
+          <h2 className="text-[15px] font-semibold mb-4">Skills</h2>
+          <SkillTiersEditor
+            value={portfolio.content.skillTiers}
+            onChange={(skillTiers) => setPortfolio({ ...portfolio, content: { ...portfolio.content, skillTiers } })}
+          />
         </div>
 
         <div className="card p-6 mb-6">

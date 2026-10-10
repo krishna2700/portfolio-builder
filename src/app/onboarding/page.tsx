@@ -7,6 +7,9 @@ import type { PortfolioContent } from "@/lib/content";
 import { EMPTY_CONTENT } from "@/lib/content";
 import type { ThemeDefinition } from "@/lib/themes";
 import PortfolioView from "@/components/portfolio/PortfolioView";
+import ExperienceEditor from "@/components/editors/ExperienceEditor";
+import ProjectsEditor from "@/components/editors/ProjectsEditor";
+import SkillTiersEditor from "@/components/editors/SkillTiersEditor";
 
 type ThemeRow = ThemeDefinition & { id: string };
 
@@ -208,12 +211,29 @@ export default function OnboardingPage() {
                 <Field label="GitHub URL" value={content.about.github} onChange={(v) => setContent((c) => ({ ...c, about: { ...c.about, github: v } }))} />
                 <Field label="LinkedIn URL" value={content.about.linkedin} onChange={(v) => setContent((c) => ({ ...c, about: { ...c.about, linkedin: v } }))} />
               </div>
-              <p className="text-[12.5px] text-[var(--fg-subtle)]">
-                Found {content.experience.length} experience entries, {content.projects.length} projects, and{" "}
-                {content.skillTiers.reduce((n, t) => n + t.items.length, 0)} skills. You can fine-tune these from
-                your dashboard after publishing.
-              </p>
             </div>
+
+            <Section title={`Experience (${content.experience.length})`}>
+              <ExperienceEditor
+                value={content.experience}
+                onChange={(experience) => setContent((c) => ({ ...c, experience }))}
+              />
+            </Section>
+
+            <Section title={`Projects (${content.projects.length})`}>
+              <ProjectsEditor
+                value={content.projects}
+                onChange={(projects) => setContent((c) => ({ ...c, projects }))}
+              />
+            </Section>
+
+            <Section title="Skills">
+              <SkillTiersEditor
+                value={content.skillTiers}
+                onChange={(skillTiers) => setContent((c) => ({ ...c, skillTiers }))}
+              />
+            </Section>
+
             <div className="flex gap-3 mt-6">
               <button className="btn-ghost" onClick={() => setStep(1)}>
                 Back
@@ -314,6 +334,23 @@ function Card({ title, subtitle, children }: { title: string; subtitle?: string;
       <h1 className="text-xl font-semibold mb-1">{title}</h1>
       {subtitle && <p className="text-[13.5px] text-[var(--fg-muted)] mb-6">{subtitle}</p>}
       {children}
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-6 pt-6 border-t border-[var(--border)]">
+      <button
+        type="button"
+        className="flex items-center justify-between w-full text-[14px] font-medium"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {title}
+        <span className="text-[var(--fg-subtle)]">{open ? "−" : "+"}</span>
+      </button>
+      {open && <div className="mt-4">{children}</div>}
     </div>
   );
 }

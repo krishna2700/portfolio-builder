@@ -8,13 +8,18 @@ portfolio at their own `yoursite.com/their-name` link — no coding required.
 2. They pick a username — that becomes their public URL (`/username`).
 3. They upload a PDF resume (and optionally a photo). An LLM (OpenAI) reads the resume and
    extracts structured content: name, title, bio, work experience, projects, and skills.
-4. They review/correct the AI-extracted fields.
+4. They review/correct every AI-extracted field — name, title, bio, contact info, full work
+   experience, projects, and skill tiers are all editable right there before publishing.
 5. They pick one of 12 themes (each with its own color palette, font pairing, and background
    animation).
 6. Their portfolio goes live immediately at `/username` — a full Hero/About/Experience/Work/Skills/Contact
    page rendered in their chosen theme.
-7. They can log back into `/dashboard` any time to edit content, change their theme, or copy their
-   link.
+7. They can log back into `/dashboard` any time to edit all of that same content, change their
+   theme, or copy their link.
+
+There's also a separate, env-gated **admin area** (`/admin`, login at `/admin/login`) that lists
+every portfolio on the instance and can delete any of them — gated by `ADMIN_EMAIL`/`ADMIN_PASSWORD`
+env vars, completely separate from regular user accounts.
 
 This repo is a sibling project to [krishna2700/portfolio](https://github.com/krishna2700/portfolio)
 and [krishna2700/pal-portfolio](https://github.com/krishna2700/pal-portfolio) — those are two
@@ -76,6 +81,7 @@ cp .env.example .env.local
 | `AUTH_JWT_SECRET` | Random secret signing user session JWTs — generate with `openssl rand -hex 32` |
 | `NEXTAUTH_URL` | `http://localhost:3000` for local dev |
 | `OPENAI_API_KEY` | Powers the resume → structured-content extraction. Without it, the "upload resume" step in onboarding will fail with a clear error. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Credentials for the separate admin area at `/admin` (login at `/admin/login`), which lists and can delete any portfolio. Not tied to any regular user account. |
 
 **Getting a Neon database + object storage (if you don't have one yet):**
 1. Create a free project at [console.neon.tech](https://console.neon.tech).
@@ -122,24 +128,29 @@ the next free port automatically — check the terminal output for the actual UR
      Continue sends the PDF to the server, which extracts its text and asks OpenAI to turn it into
      structured fields (name, title, bio, experience, projects, skills).
    - **Step 3 — Review your details.** The AI-extracted name, title, tagline, bio, email, location,
-     GitHub, and LinkedIn are shown in editable fields — fix anything that's wrong. (Experience,
-     projects, and skills are parsed too; fine-tune those later from the dashboard.)
+     GitHub, and LinkedIn are shown in editable fields — fix anything that's wrong. Below that,
+     collapsible **Experience**, **Projects**, and **Skills** sections let you add, edit, or remove
+     any entry the AI pulled out, before you ever publish.
    - **Step 4 — Pick a theme.** A grid of all 12 themes with a color swatch and animation name;
      click one to select it.
    - **Step 5 — Preview & publish.** A live, full-size preview of your actual portfolio in the
      chosen theme. Click **Publish my portfolio** to go live.
 4. You land on **`/dashboard`**, where you can see and copy your public link
-   (`yoursite.com/your-name`), open it live, edit your core content fields, switch themes, and save
-   changes.
+   (`yoursite.com/your-name`), open it live, edit every piece of content (hero/about fields plus
+   full experience/projects/skills editors), switch themes, and save changes.
 5. Your portfolio is now live for anyone at `/your-name` — no login required to view it.
+
+## Admin area
+
+A separate, env-gated admin area lives at `/admin` (log in at `/admin/login`) using the
+`ADMIN_EMAIL` / `ADMIN_PASSWORD` env vars — it's not tied to any regular user account. It lists
+every portfolio on the instance (name, public link, owner email, theme, created date) and can
+delete any of them. Useful for moderation/cleanup; there's no link to it from the public UI.
 
 ## What's not included (by design, to keep scope tractable)
 
 - A contact-form backend per generated portfolio (the Contact section links directly to `mailto:`
   instead).
-- Deep editing of experience/projects/skill-tier lists from the dashboard (currently: name, title,
-  tagline, bio, email, location, and theme). Extending the dashboard form to cover the rest of
-  `PortfolioContent` (see `src/lib/content.ts`) is a natural next step.
 - Deployment config/instructions — **this project has not been deployed anywhere yet.** When you're
   ready: import into Vercel, add all env vars from `.env.local`, and run
   `npx prisma migrate deploy` once against the production `DIRECT_URL` before the first request hits
@@ -152,10 +163,12 @@ the next free port automatically — check the terminal output for the actual UR
 | `src/app/page.tsx` | Landing page |
 | `src/app/signup`, `src/app/login` | Auth pages |
 | `src/app/onboarding` | The 5-step resume → portfolio wizard |
-| `src/app/dashboard` | Logged-in user's content/theme editor |
+| `src/app/dashboard` | Logged-in user's full content/theme editor |
+| `src/app/admin`, `src/app/admin/login` | Env-gated admin area — list/delete any portfolio |
 | `src/app/[slug]/page.tsx` | The public portfolio page for a given username |
-| `src/app/api/*` | Auth, portfolio CRUD, resume parsing, and theme-list REST routes |
+| `src/app/api/*` | Auth, portfolio CRUD, resume parsing, theme-list, and admin REST routes |
 | `src/components/portfolio/*` | Shared, theme-driven section components (Hero, About, Experience, Projects, Skills, Contact) used by both the public page and the onboarding/live preview |
+| `src/components/editors/*` | Reusable list editors (experience, projects, skill tiers) shared by onboarding Step 3 and the dashboard |
 | `src/components/animations/*` | The 6 background-animation components (grid, neural, particles, orbit, matrix, minimal) shared across the 12 themes |
 | `src/lib/themes.ts` | The 12 theme definitions (colors, fonts, animation) |
 | `src/lib/content.ts` | The Zod schema for a portfolio's structured content |
