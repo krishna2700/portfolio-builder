@@ -88,3 +88,14 @@ export async function PATCH(req: Request) {
 
   return ok({ success: true, slug: portfolio.slug });
 }
+
+export async function DELETE() {
+  const user = await getCurrentUser();
+  if (!user) return fail("Not authenticated", 401);
+
+  const existing = await prisma.portfolio.findUnique({ where: { userId: user.id } });
+  if (!existing) return fail("No portfolio to delete", 404);
+
+  await prisma.portfolio.delete({ where: { userId: user.id } });
+  return ok({ success: true });
+}

@@ -24,6 +24,7 @@ export default function DashboardPage() {
   const [themes, setThemes] = useState<ThemeRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -78,6 +79,27 @@ export default function DashboardPage() {
     const url = `${window.location.origin}/${portfolio.slug}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied");
+  };
+
+  const handleDeletePortfolio = async () => {
+    if (!portfolio) return;
+    if (!confirm(`Delete your portfolio at /${portfolio.slug}? This can't be undone.`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/portfolio", { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Couldn't delete");
+        return;
+      }
+      toast.success("Portfolio deleted");
+      router.push("/onboarding");
+      router.refresh();
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) {
@@ -193,6 +215,21 @@ export default function DashboardPage() {
         <button className="btn-primary w-full" disabled={saving} onClick={handleSave}>
           {saving ? "Saving…" : "Save changes"}
         </button>
+
+        <div className="card p-6 mt-6 border-red-500/30">
+          <h2 className="text-[15px] font-semibold mb-1">Danger zone</h2>
+          <p className="text-[13px] text-[var(--fg-muted)] mb-4">
+            Permanently delete your portfolio. Your account stays active — you can create a new
+            portfolio afterward.
+          </p>
+          <button
+            className="btn-ghost !border-red-500/40 text-red-400"
+            disabled={deleting}
+            onClick={handleDeletePortfolio}
+          >
+            {deleting ? "Deleting…" : "Delete my portfolio"}
+          </button>
+        </div>
       </div>
     </main>
   );

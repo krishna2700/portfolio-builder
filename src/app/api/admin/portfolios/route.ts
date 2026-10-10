@@ -13,6 +13,7 @@ export async function GET() {
   return ok({
     portfolios: portfolios.map((p) => ({
       id: p.id,
+      userId: p.userId,
       slug: p.slug,
       name: (p.content as { hero?: { name?: string } })?.hero?.name ?? "",
       ownerEmail: p.user.email,
